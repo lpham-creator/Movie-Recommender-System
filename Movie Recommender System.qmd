@@ -11,8 +11,6 @@ library(ggplot2)
 library(data.table)
 library(reshape2)
 ```
-## Retrieving Data 
-We will now retrieve our data from movies.csv into movie_data dataframe and ratings.csv into rating_data. We will use the str() function to display information about the movie_data dataframe.
 
 ```{r}
 movie_data <- read.csv("/Users/phamlethuylinh/Desktop/IMDB-Dataset/movies.csv")
@@ -26,9 +24,7 @@ head(movie_data)
 head(rating_data)
 summary(rating_data)
 ```
-## Data Pre-processing
 
-From the above table, we observe that the userId column, as well as the movieId column, consist of integers. Furthermore, we need to convert the genres present in the movie_data dataframe into a more usable format by the users. In order to do so, we will first create a one-hot encoding to create a matrix that comprises of corresponding genres for each of the films.
 ```{r}
 rm(genre_mat1, genre_mat2, movie_genre, movie_genre2)
 ```
@@ -112,9 +108,6 @@ names(recommendation_model)
 ```{r}
 lapply(recommendation_model, "[[", "description")
 ```
-## Exploring Similar Data
-Collaborative Filtering involves suggesting movies to the users that are based on collecting preferences from many other users. For example, if a user A likes to watch action films and so does user B, then the movies that the user B will watch in the future will be recommended to A and vice-versa. Therefore, recommending movies is dependent on creating a relationship of similarity between the two users. With the help of recommenderlab, we can compute similarities using various operators like cosine, pearson as well as jaccard.
-
 ```{r}
 similarity_mat <- similarity(ratingMatrix[1:4, ],
                                method = "cosine",
@@ -161,13 +154,6 @@ ggplot(table_views[1:6, ], aes(x = title, y = views)) +
   ggtitle("Total Views of the Top Films")
 ```
 
-## Performing Data Preparation
-We will conduct data preparation in the following three steps –
-- Selecting useful data.
-- Normalizing data.
-- Binarizing the data.
-For finding useful data in our dataset, we have set the threshold for the minimum number of users who have rated a film as 50. This is also same for minimum number of views that are per film. This way, we have filtered a list of watched films from least-watched ones.
-
 ```{r}
 #filter out all films that have views and number of votes under 50
 movie_ratings <- ratingMatrix[rowCounts(ratingMatrix) > 50,
@@ -187,15 +173,11 @@ average_ratings <- rowMeans(movie_ratings)
 qplot(average_ratings, fill=I("steelblue"), col=I("red")) +
   ggtitle("Distribution of the average rating per user")
 ```
-## Performing Data Binarization
-
-In the final step of our data preparation in this data science project, we will binarize our data. Binarizing the data means that we have two discrete values 1 and 0, which will allow our recommendation systems to work more efficiently. We will define a matrix that will consist of 1 if the rating is above 3 and otherwise it will be 0.
 
 ```{r}
 binary_minimum_movies <- quantile(rowCounts(movie_ratings), 0.95)
 binary_minimum_users <- quantile(colCounts(movie_ratings), 0.95)
 ```
-
 
 ```{r}
 #movies_watched <- binarize(movie_ratings, minRating = 1)
@@ -205,17 +187,6 @@ image(good_rated_films[rowCounts(movie_ratings) > binary_minimum_movies,
 colCounts(movie_ratings) > binary_minimum_users],
 main = "Heatmap of the top users and movies")
 ```
-## Collaborative Filtering System
-
-In this section of data science project, we will develop our very own Item Based Collaborative Filtering System. This type of collaborative filtering finds similarity in the items based on the people’s ratings of them. The algorithm first builds a similar-items table of the customers who have purchased them into a combination of similar items. This is then fed into the recommendation system.
-
-The similarity between single products and related products can be determined with the following algorithm –
-
-For each Item i1 present in the product catalog, purchased by customer C.
-And, for each item i2 also purchased by the customer C.
-Create record that the customer purchased items i1 and i2.
-Calculate the similarity between i1 and i2.
-We will build this filtering system by splitting the dataset into 80% training set and 20% test set.
 
 ```{r}
 sampled_data<- sample(x = c(TRUE, FALSE),
@@ -225,10 +196,6 @@ sampled_data<- sample(x = c(TRUE, FALSE),
 training_data <- movie_ratings[sampled_data, ]
 testing_data <- movie_ratings[!sampled_data, ]
 ```
-
-## Building the Recommendation System using R
-
-We will now explore the various parameters of our Item Based Collaborative Filter. These parameters are default in nature. In the first step, k denotes the number of items for computing their similarities. Here, k is equal to 30. Therefore, the algorithm will now identify the k most similar items and store their number. We use the cosine method which is the default one but you can also use pearson method.
 
 ```{r}
 recommendation_system <- recommenderRegistry$get_entries(dataType ="realRatingMatrix")
